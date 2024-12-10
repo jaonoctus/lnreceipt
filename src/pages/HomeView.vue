@@ -41,8 +41,6 @@ const decodedInvoice = computed(() => {
       return null
     }
 
-    console.log(decoded)
-
     const amount = decoded.sections.find((section) => section.name === 'amount')?.value
     const description =
       decoded.sections.find((section) => section.name === 'description')?.value ?? 'empty'
@@ -99,19 +97,23 @@ function formatLong(text: string) {
 </script>
 
 <template>
-  <div class="min-h-screen w-full flex items-center justify-center p-4">
+  <div class="w-full flex items-center justify-center p-4">
     <Card class="w-full max-w-2xl">
       <CardHeader>
         <CardTitle> Lightning Receipt </CardTitle>
-        <CardDescription>
-          The provided preimage cryptographically proves that the specified invoice has been
-          successfully paid. Learn more
-          <a
-            href="https://faq.blink.sv/blink-and-other-wallets/how-to-prove-that-a-lightning-invoice-was-paid"
-            target="_blank"
-            class="font-medium text-primary underline underline-offset-4"
+        <CardDescription class="text-xs">
+          <p>The provided preimage cryptographically proves that the specified invoice has been
+            successfully paid.
+          </p>
+          <p>
+            Learn more
+            <a
+              href="https://faq.blink.sv/blink-and-other-wallets/how-to-prove-that-a-lightning-invoice-was-paid"
+              target="_blank"
+              class="font-medium text-primary"
             >here</a
-          >.
+            >.
+          </p>
         </CardDescription>
       </CardHeader>
       <CardContent>
