@@ -91,7 +91,7 @@ async function checkPaymentProof() {
 }
 
 function formatLong(text: string) {
-  const long = text.replace(/\s+/g, '').toUpperCase().slice(0, 16)
+  const long = text.replace(/\s+/g, '').toUpperCase().slice(Math.max(0, text.length - 16))
   return `0x${long}`
 }
 </script>
