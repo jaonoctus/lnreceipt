@@ -49,8 +49,6 @@ const decodedInvoice = computed(() => {
 
     const pubkey = getPubkeyFromSignature(decoded);
 
-    console.log(`https://amboss.space/node/${pubkey}`);
-
     if (!amount) {
       return null
     }
