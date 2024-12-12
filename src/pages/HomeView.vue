@@ -33,6 +33,8 @@ const isVerified = ref(false)
 
 const { form } = useForm()
 
+const payeePubKey = ref("");
+
 const decodedInvoice = computed(() => {
   try {
     const decoded = bolt11.decode(form.invoice)
@@ -60,6 +62,7 @@ const decodedInvoice = computed(() => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
+    console.error(error)
     return null
   }
 })
@@ -67,11 +70,9 @@ const decodedInvoice = computed(() => {
 watchEffect(async () => {
   isVerified.value = false
   if (decodedInvoice.value) {
-    const pubkey = await getPubkeyFromSignature(decodedInvoice.value.decoded);
-    decodedInvoice.value.pubkey = pubkey;
-
     isPaid.value = await checkPaymentProof()
     isVerified.value = true
+    payeePubKey.value = await getPubkeyFromSignature(decodedInvoice.value.decoded) || "";
   }
 })
 
@@ -160,13 +161,13 @@ function formatLong(text: string) {
                   <CopyButton title="payment hash" :value="decodedInvoice.paymentHash" />
                 </TableCell>
               </TableRow>
-              <TableRow v-if="decodedInvoice.pubkey">
+              <TableRow v-if="payeePubKey">
                 <TableCell class="font-medium"> Payee Pub Key </TableCell>
                 <TableCell class="text-right">
-                  <span>{{ formatLong(decodedInvoice.pubkey) }}</span>
+                  <span>{{ formatLong(payeePubKey) }}</span>
                   
                   <a
-                  :href="`https://amboss.space/node/${decodedInvoice.pubkey}`"
+                  :href="`https://amboss.space/node/${payeePubKey}`"
                   target="_blank"
                   >
                   <Button variant="ghost"
