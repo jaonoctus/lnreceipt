@@ -47,8 +47,6 @@ const decodedInvoice = computed(() => {
     const paymentHash =
       decoded.sections.find((section) => section.name === 'payment_hash')?.value ?? ''
 
-    const pubkey = getPubkeyFromSignature(decoded);
-
     if (!amount) {
       return null
     }
@@ -57,7 +55,7 @@ const decodedInvoice = computed(() => {
       amount: Math.floor(Number(amount) / 1000),
       description,
       paymentHash,
-      pubkey
+      decoded
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -69,6 +67,9 @@ const decodedInvoice = computed(() => {
 watchEffect(async () => {
   isVerified.value = false
   if (decodedInvoice.value) {
+    const pubkey = await getPubkeyFromSignature(decodedInvoice.value.decoded);
+    decodedInvoice.value.pubkey = pubkey;
+
     isPaid.value = await checkPaymentProof()
     isVerified.value = true
   }

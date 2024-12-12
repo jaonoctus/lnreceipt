@@ -1,5 +1,4 @@
 import * as secp256k1 from 'secp256k1'
-import * as CryptoJS from 'crypto-js'
 
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -61,6 +60,14 @@ export function strToHex(str: string) {
     .join('')
 }
 
+const hexToArrayBuffer = (hexString: string) => {
+  const bytes = new Uint8Array(hexString.length / 2)
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hexString.substr(i * 2, 2), 16)
+  }
+  return bytes.buffer
+}
+
 export function byteArrayToHexString(byteArray: Uint8Array) {
   return Array.prototype.map
     .call(byteArray, function (byte) {
@@ -94,19 +101,7 @@ export function bech32To8BitArray(str: string) {
   return Uint8Array.from(byteArray)
 }
 
-const wordListToUint8Array = (wordList: CryptoJS.lib.WordArray) => {
-  const dataArray = new Uint8Array(wordList.sigBytes)
-
-  for (let i = 0x0; i < wordList.sigBytes; i++) {
-    dataArray[i] = (wordList.words[i >>> 0x2] >>> (0x18 - (i % 0x4) * 0x8)) & 0xff
-  }
-
-  const data = new Uint8Array(dataArray)
-
-  return data
-}
-
-export function getPubkeyFromSignature(decoded: DecodedInvoice) {
+export async function getPubkeyFromSignature(decoded: DecodedInvoice) {
   const signature = decoded.sections.find((section) => section.name === 'signature')
 
   if (!signature || !signature.letters || !signature.value) {
@@ -138,18 +133,12 @@ export function getPubkeyFromSignature(decoded: DecodedInvoice) {
 
   const signingData = strToHex(prefix) + byteArrayToHexString(bech32To8BitArray(data))
 
-  const signingDataParsed = CryptoJS.enc.Hex.parse(signingData)
-  const payHash = CryptoJS.SHA256(signingDataParsed)
+  const hash = await crypto.subtle.digest('SHA-256', hexToArrayBuffer(signingData))
 
   const signatureValue = signature.value.slice(0, -2)
-  const sigParsed = CryptoJS.enc.Hex.parse(signatureValue)
+  const sigParsed = hexToArrayBuffer(signatureValue)
 
-  const sigPubkey = secp256k1.ecdsaRecover(
-    wordListToUint8Array(sigParsed),
-    1,
-    wordListToUint8Array(payHash),
-    true,
-  )
+  const sigPubkey = secp256k1.ecdsaRecover(new Uint8Array(sigParsed), 1, new Uint8Array(hash), true)
 
   return byteArrayToHexString(sigPubkey)
 }
