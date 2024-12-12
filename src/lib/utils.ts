@@ -135,10 +135,11 @@ export async function getPubkeyFromSignature(decoded: DecodedInvoice) {
 
   const hash = await crypto.subtle.digest('SHA-256', hexToArrayBuffer(signingData))
 
+  const recoveryId = parseInt(signature.value.slice(-2), 16);
   const signatureValue = signature.value.slice(0, -2)
   const sigParsed = hexToArrayBuffer(signatureValue)
 
-  const sigPubkey = secp256k1.ecdsaRecover(new Uint8Array(sigParsed), 1, new Uint8Array(hash), true)
+  const sigPubkey = secp256k1.ecdsaRecover(new Uint8Array(sigParsed), recoveryId, new Uint8Array(hash), true)
 
   return byteArrayToHexString(sigPubkey)
 }
