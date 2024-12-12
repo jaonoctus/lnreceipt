@@ -5,7 +5,7 @@ import bolt11 from 'light-bolt11-decoder'
 // import { Duration } from 'luxon'
 
 import { Icon } from '@iconify/vue'
-import { useForm } from '@/lib/utils'
+import { useForm, getPubkeyFromSignature } from '@/lib/utils'
 import {
   Card,
   CardHeader,
@@ -33,6 +33,8 @@ const isVerified = ref(false)
 
 const { form } = useForm()
 
+const payeePubKey = ref("");
+
 const decodedInvoice = computed(() => {
   try {
     const decoded = bolt11.decode(form.invoice)
@@ -55,10 +57,12 @@ const decodedInvoice = computed(() => {
       amount: Math.floor(Number(amount) / 1000),
       description,
       paymentHash,
+      decoded
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
+    console.error(error)
     return null
   }
 })
@@ -68,6 +72,7 @@ watchEffect(async () => {
   if (decodedInvoice.value) {
     isPaid.value = await checkPaymentProof()
     isVerified.value = true
+    payeePubKey.value = await getPubkeyFromSignature(decodedInvoice.value.decoded) || "";
   }
 })
 
@@ -154,6 +159,23 @@ function formatLong(text: string) {
                 <TableCell class="text-right">
                   <span>{{ formatLong(decodedInvoice.paymentHash) }}</span>
                   <CopyButton title="payment hash" :value="decodedInvoice.paymentHash" />
+                </TableCell>
+              </TableRow>
+              <TableRow v-if="payeePubKey">
+                <TableCell class="font-medium"> Payee Pub Key </TableCell>
+                <TableCell class="text-right">
+                  <span>{{ formatLong(payeePubKey) }}</span>
+                  
+                  <a
+                  :href="`https://amboss.space/node/${payeePubKey}`"
+                  target="_blank"
+                  >
+                  <Button variant="ghost"
+                    class="m-0 mx-3 p-0 hover:bg-transparent"
+                  >
+                    <Icon icon="lucide:external-link" />
+                  </Button>
+                </a>
                 </TableCell>
               </TableRow>
               <TableRow>
