@@ -1,6 +1,6 @@
 {
   "name": "lnreceipt",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,7 +20,6 @@
     "@vee-validate/zod": "^4.14.7",
     "@vueuse/core": "^12.0.0",
     "@vueuse/router": "^12.0.0",
-    "bolt11": "^1.4.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "light-bolt11-decoder": "^3.2.0",
