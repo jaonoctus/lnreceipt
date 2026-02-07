@@ -1,4 +1,4 @@
-import * as secp256k1 from 'secp256k1'
+import { Signature } from '@noble/secp256k1'
 
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -135,11 +135,11 @@ export async function getPubkeyFromSignature(decoded: DecodedInvoice) {
 
   const hash = await crypto.subtle.digest('SHA-256', hexToArrayBuffer(signingData))
 
-  const recoveryId = parseInt(signature.value.slice(-2), 16);
+  const recoveryId = parseInt(signature.value.slice(-2), 16)
   const signatureValue = signature.value.slice(0, -2)
-  const sigParsed = hexToArrayBuffer(signatureValue)
 
-  const sigPubkey = secp256k1.ecdsaRecover(new Uint8Array(sigParsed), recoveryId, new Uint8Array(hash), true)
+  const sig = Signature.fromCompact(signatureValue).addRecoveryBit(recoveryId)
+  const pubkey = sig.recoverPublicKey(new Uint8Array(hash))
 
-  return byteArrayToHexString(sigPubkey)
+  return byteArrayToHexString(pubkey.toRawBytes(true))
 }
