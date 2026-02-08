@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watchEffect, ref } from 'vue'
+import { computed, watchEffect, ref, reactive } from 'vue'
 
 import bolt11 from 'light-bolt11-decoder'
 // import { Duration } from 'luxon'
@@ -30,12 +30,16 @@ import Separator from '~/components/ui/separator/Separator.vue'
 const isPaid = ref(false)
 const isVerified = ref(false)
 
-const { form } = useForm()
+// Read from route params instead of query params
+const route = useRoute()
+const form = reactive<LightningReceipt>({
+  invoice: (route.params.invoice as string)?.toLowerCase() || '',
+  preimage: (route.params.preimage as string)?.toLowerCase() || '',
+})
 
 const payeePubKey = ref('')
 
 // Setup Open Graph meta tags for social media previews
-const route = useRoute()
 // Get the base URL dynamically from the request (works for preview deployments)
 const requestUrl = useRequestURL()
 const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
