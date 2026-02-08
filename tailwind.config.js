@@ -1,16 +1,17 @@
 import animate from "tailwindcss-animate"
 
 /** @type {import('tailwindcss').Config} */
-export const darkMode = ["class"]
-export const safelist = ["dark"]
-export const prefix = ""
-export const content = [
-  './pages/**/*.{ts,tsx,vue}',
-  './components/**/*.{ts,tsx,vue}',
-  './app/**/*.{ts,tsx,vue}',
-  './src/**/*.{ts,tsx,vue}',
-]
-export const theme = {
+export default {
+  darkMode: ["class"],
+  safelist: ["dark"],
+  prefix: "",
+  content: [
+    './pages/**/*.{ts,tsx,vue}',
+    './components/**/*.{ts,tsx,vue}',
+    './app/**/*.{ts,tsx,vue}',
+    './src/**/*.{ts,tsx,vue}',
+  ],
+  theme: {
   container: {
     center: true,
     padding: "2rem",
@@ -85,5 +86,6 @@ export const theme = {
       "collapsible-up": "collapsible-up 0.2s ease-in-out",
     },
   },
+},
+  plugins: [animate],
 }
-export const plugins = [animate]

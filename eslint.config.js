@@ -16,7 +16,9 @@ export default [
       '**/dist/**',
       '**/dist-ssr/**',
       '**/coverage/**',
-      'src/components/ui/**'
+      '.nuxt/**',
+      '.output/**',
+      'components/ui/**',
     ],
   },
 
@@ -25,7 +27,7 @@ export default [
 
   {
     ...pluginVitest.configs.recommended,
-    files: ['src/**/__tests__/*'],
+    files: ['**/__tests__/*'],
   },
 
   {
