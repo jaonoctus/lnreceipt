@@ -1,6 +1,6 @@
 {
   "name": "lnreceipt",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,7 +15,8 @@
     "test:unit": "vitest",
     "test:e2e": "start-server-and-test preview http://localhost:3000 'cypress run --e2e'",
     "test:e2e:dev": "start-server-and-test 'nuxt dev' http://localhost:3000 'cypress open --e2e'",
-    "build:standalone": "nuxt generate"
+    "build:standalone": "NUXT_SSR=false nuxt generate",
+    "build:web": "nuxt build"
   },
   "dependencies": {
     "@noble/secp256k1": "^2.1.0",

@@ -1,9 +1,15 @@
 export default defineNuxtConfig({
-  ssr: false, // SPA mode
+  ssr: process.env.NUXT_SSR !== 'false', // SSR enabled by default, can be disabled with env var
 
-  modules: ['@nuxtjs/tailwindcss', 'nuxt-single-html'],
+  modules: ['@nuxtjs/tailwindcss', ...(process.env.NUXT_SSR === 'false' ? ['nuxt-single-html'] : [])],
 
   css: ['~/assets/index.css'],
+
+  runtimeConfig: {
+    public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+    },
+  },
 
   router: {
     options: {
