@@ -15,12 +15,12 @@ const props = defineProps<{
 const { share, isSupported } = useShare()
 
 const link = computed(() => {
-  const url = new URL(window.location.href)
-
-  url.searchParams.set('invoice', props.form.invoice)
-  url.searchParams.set('preimage', props.form.preimage)
-
-  return url.toString()
+  const baseUrl = window.location.origin
+  const hashMode = window.location.hash.startsWith('#')
+  const prefix = hashMode ? '#/' : '/'
+  const invoice = encodeURIComponent(props.form.invoice)
+  const preimage = encodeURIComponent(props.form.preimage)
+  return `${baseUrl}${prefix}${invoice}/${preimage}`
 })
 
 const isDisabled = computed(
