@@ -97,14 +97,14 @@ function buildOgLayout(
             },
             children: [
               {
-                type: 'div',
+                type: 'span',
                 props: {
                   style: { fontSize: '44px', marginRight: '16px' },
                   children: '\u26A1',
                 },
               },
               {
-                type: 'div',
+                type: 'span',
                 props: {
                   style: {
                     fontSize: '44px',
@@ -132,12 +132,12 @@ function buildOgLayout(
           type: 'div',
           props: {
             style: {
+              display: 'flex',
               height: '1px',
               backgroundColor: '#2a2420',
               width: '100%',
               marginBottom: '40px',
             },
-            children: [],
           },
         },
         {
@@ -153,50 +153,7 @@ function buildOgLayout(
               buildRow('Amount', amountText, true),
               buildRow('Description', truncateDescription(description)),
               buildRow('Payment Hash', formatHash(paymentHash)),
-              {
-                type: 'div',
-                props: {
-                  style: {
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  },
-                  children: [
-                    {
-                      type: 'div',
-                      props: {
-                        style: { fontSize: '22px', color: '#a8a29e' },
-                        children: 'Status',
-                      },
-                    },
-                    {
-                      type: 'div',
-                      props: {
-                        style: {
-                          display: 'flex',
-                          alignItems: 'center',
-                          fontSize: '24px',
-                          fontWeight: 700,
-                          color: statusColor,
-                        },
-                        children: [
-                          {
-                            type: 'div',
-                            props: {
-                              style: { marginRight: '10px', fontSize: '28px' },
-                              children: statusIcon,
-                            },
-                          },
-                          {
-                            type: 'div',
-                            props: { children: statusText },
-                          },
-                        ],
-                      },
-                    },
-                  ],
-                },
-              },
+              buildRow('Status', `${statusIcon} ${statusText}`, false, statusColor),
             ],
           },
         },
@@ -204,13 +161,13 @@ function buildOgLayout(
           type: 'div',
           props: {
             style: {
+              display: 'flex',
               height: '1px',
               backgroundColor: '#2a2420',
               width: '100%',
               marginTop: '30px',
               marginBottom: '20px',
             },
-            children: [],
           },
         },
         {
@@ -229,7 +186,7 @@ function buildOgLayout(
   }
 }
 
-function buildRow(label: string, value: string, highlight = false) {
+function buildRow(label: string, value: string, highlight = false, valueColor?: string) {
   return {
     type: 'div',
     props: {
@@ -240,19 +197,19 @@ function buildRow(label: string, value: string, highlight = false) {
       },
       children: [
         {
-          type: 'div',
+          type: 'span',
           props: {
             style: { fontSize: '22px', color: '#a8a29e' },
             children: label,
           },
         },
         {
-          type: 'div',
+          type: 'span',
           props: {
             style: {
               fontSize: highlight ? '28px' : '22px',
               fontWeight: highlight ? 700 : 400,
-              color: highlight ? '#fafaf9' : '#d6d3d1',
+              color: valueColor || (highlight ? '#fafaf9' : '#d6d3d1'),
             },
             children: value,
           },
