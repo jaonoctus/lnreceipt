@@ -16,6 +16,7 @@ import {
 import { Input } from '~/components/ui/input'
 import CopyButton from '~/components/CopyButton.vue'
 import ShareButton from '~/components/ShareButton.vue'
+import CopyLinkButton from '~/components/CopyLinkButton.vue'
 
 import {
   Table,
@@ -188,7 +189,8 @@ function formatLong(text: string) {
           </Table>
         </div>
       </CardContent>
-      <CardFooter class="flex justify-center px-6 pb-6">
+      <CardFooter class="flex justify-center gap-3 px-6 pb-6">
+        <CopyLinkButton :form="form" />
         <ShareButton :form="form" />
       </CardFooter>
     </Card>
