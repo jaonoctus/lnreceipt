@@ -34,6 +34,13 @@ const { form } = useForm()
 
 const payeePubKey = ref('')
 
+const shareLink = computed(() => {
+  const url = new URL(window.location.href)
+  url.searchParams.set('invoice', form.invoice)
+  url.searchParams.set('preimage', form.preimage)
+  return url.toString()
+})
+
 const decodedInvoice = computed(() => {
   try {
     const decoded = bolt11.decode(form.invoice)
@@ -188,8 +195,9 @@ function formatLong(text: string) {
           </Table>
         </div>
       </CardContent>
-      <CardFooter class="flex justify-center px-6 pb-6">
+      <CardFooter class="flex justify-center px-6 pb-6 gap-3">
         <ShareButton :form="form" />
+        <CopyButton title="share link" :value="shareLink" />
       </CardFooter>
     </Card>
   </div>
