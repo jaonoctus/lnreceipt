@@ -13,6 +13,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function buildReceiptShareUrl(origin: string, invoice: string, preimage: string) {
+  const normalizedOrigin = origin.replace(/\/+$/, '')
+  return `${normalizedOrigin}/r/${encodeURIComponent(invoice)}/${encodeURIComponent(preimage)}`
+}
+
 export function useCopyToClipboard(title: string, value: string) {
   const { copy, isSupported } = useClipboard()
   // const { toast } = useToast()

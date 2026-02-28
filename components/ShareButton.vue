@@ -7,6 +7,7 @@ import { Icon } from '@iconify/vue'
 import { useShare } from '@vueuse/core'
 
 import { Button } from '~/components/ui/button'
+import { buildReceiptShareUrl } from '~/composables/utils'
 
 const props = defineProps<{
   form: LightningReceipt
@@ -15,16 +16,11 @@ const props = defineProps<{
 const { share, isSupported } = useShare()
 
 const link = computed(() => {
-  const url = new URL(window.location.href)
-
-  url.searchParams.set('invoice', props.form.invoice)
-  url.searchParams.set('preimage', props.form.preimage)
-
-  return url.toString()
+  return buildReceiptShareUrl(window.location.origin, props.form.invoice, props.form.preimage)
 })
 
 const isDisabled = computed(
-  () => isSupported && !(props.form.invoice === '' || props.form.preimage === ''),
+  () => isSupported.value && !(props.form.invoice === '' || props.form.preimage === ''),
 )
 
 function startShare() {
