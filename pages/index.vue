@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watchEffect, ref } from 'vue'
 
-import bolt11 from 'light-bolt11-decoder'
+import { decodeInvoice } from '~/composables/invoice'
 // import { Duration } from 'luxon'
 
 import { Icon } from '@iconify/vue'
@@ -29,57 +29,54 @@ import Separator from '~/components/ui/separator/Separator.vue'
 
 const isPaid = ref(false)
 const isVerified = ref(false)
+const decodeError = ref('')
 
 const { form } = useForm()
 
 const payeePubKey = ref('')
 
 const decodedInvoice = computed(() => {
+  decodeError.value = ''
+
   try {
-    const decoded = bolt11.decode(form.invoice)
-
-    if (!decoded) {
-      return null
-    }
-
-    const amount = decoded.sections.find((section) => section.name === 'amount')?.value
-    const description =
-      decoded.sections.find((section) => section.name === 'description')?.value ?? 'empty'
-    const paymentHash =
-      decoded.sections.find((section) => section.name === 'payment_hash')?.value ?? ''
-
-    if (!amount) {
-      return null
-    }
-
-    return {
-      amount: Math.floor(Number(amount) / 1000),
-      description,
-      paymentHash,
-      decoded,
-    }
+    return decodeInvoice(form.invoice)
   } catch (error) {
-    console.error(error)
+    decodeError.value = error instanceof Error ? error.message : 'Invalid invoice'
     return null
   }
 })
 
 watchEffect(async () => {
+  isPaid.value = false
   isVerified.value = false
+  payeePubKey.value = ''
+
   if (decodedInvoice.value) {
     isPaid.value = await checkPaymentProof()
     isVerified.value = true
-    payeePubKey.value = (await getPubkeyFromSignature(decodedInvoice.value.decoded)) || ''
+
+    if (decodedInvoice.value.bolt11Raw) {
+      payeePubKey.value = (await getPubkeyFromSignature(decodedInvoice.value.bolt11Raw)) || ''
+      return
+    }
+
+    payeePubKey.value = decodedInvoice.value.payeePubKey ?? ''
   }
 })
 
 async function checkPaymentProof() {
-  const preimage = form.preimage
-  if (preimage === null) {
+  if (!decodedInvoice.value) {
     return false
   }
+
+  const preimage = form.preimage?.trim()
+
+  if (!preimage || preimage.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(preimage)) {
+    return false
+  }
+
   const preimageBytes = new Uint8Array(
-    preimage!.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
+    preimage.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
   )
 
   // Calculate SHA-256 hash using Web Crypto API
@@ -106,7 +103,7 @@ function formatLong(text: string) {
         <CardDescription class="text-xs">
           <p>
             The provided preimage cryptographically proves that the specified invoice has been
-            successfully paid.
+            successfully paid. Supports both BOLT11 and BOLT12 invoices.
           </p>
           <p>
             Learn more
@@ -123,9 +120,10 @@ function formatLong(text: string) {
         <Separator />
         <div class="font-medium mb-2 mt-5">Invoice:</div>
         <div class="flex w-full items-center">
-          <Input id="invoice" type="text" placeholder="bolt11" v-model="form.invoice" />
+          <Input id="invoice" type="text" placeholder="bolt11 or bolt12 invoice" v-model="form.invoice" />
           <CopyButton title="invoice" :value="form.invoice" />
         </div>
+        <p v-if="decodeError" class="text-destructive text-sm mt-2">{{ decodeError }}</p>
         <div class="font-medium mb-2 mt-5">Payment Proof:</div>
         <div class="flex w-full items-center">
           <Input id="preimage" type="text" placeholder="preimage" v-model="form.preimage" />
@@ -142,6 +140,10 @@ function formatLong(text: string) {
               </TableRow>
             </TableHeader>
             <TableBody>
+              <TableRow>
+                <TableCell class="font-medium"> Format </TableCell>
+                <TableCell class="text-right uppercase"> {{ decodedInvoice.format }} </TableCell>
+              </TableRow>
               <TableRow>
                 <TableCell class="font-medium"> Amount </TableCell>
                 <TableCell class="text-right">
