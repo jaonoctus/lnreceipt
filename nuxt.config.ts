@@ -1,22 +1,30 @@
-export default defineNuxtConfig({
-  ssr: false, // SPA mode
+const isSpa = process.env.NUXT_SSR === 'false'
 
-  modules: ['@nuxtjs/tailwindcss', 'nuxt-single-html'],
+export default defineNuxtConfig({
+  ssr: !isSpa,
+
+  modules: ['@nuxtjs/tailwindcss', ...(isSpa ? ['nuxt-single-html'] : [])],
 
   css: ['~/assets/index.css'],
 
+  runtimeConfig: {
+    public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+    },
+  },
+
   router: {
     options: {
-      hashMode: true, // Use hash-based routing for file:// protocol support
+      hashMode: isSpa,
     },
   },
 
   app: {
-    baseURL: './', // Relative base URL for standalone HTML
+    baseURL: isSpa ? './' : '/',
     head: {
       htmlAttrs: {
         lang: '',
-        class: 'dark', // Dark mode by default
+        class: 'dark',
       },
       title: 'Lightning Receipt',
       meta: [
@@ -48,13 +56,19 @@ export default defineNuxtConfig({
 
   typescript: {
     strict: true,
-    typeCheck: false, // Disable for now due to component import issues
+    typeCheck: false,
+  },
+
+  nitro: {
+    rollupConfig: {
+      external: ['@resvg/resvg-js'],
+    },
   },
 
   vite: {
     resolve: {
       alias: {
-        '@': '/src', // Maintain compatibility
+        '@': '/src',
       },
     },
   },
