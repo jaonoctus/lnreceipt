@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, watchEffect, ref } from 'vue'
+import { computed, watchEffect, ref, reactive } from 'vue'
 
 import bolt11 from 'light-bolt11-decoder'
-// import { Duration } from 'luxon'
+import type { LightningReceipt } from '~/types/index'
 
 import { Icon } from '@iconify/vue'
 import {
@@ -30,9 +30,42 @@ import Separator from '~/components/ui/separator/Separator.vue'
 const isPaid = ref(false)
 const isVerified = ref(false)
 
-const { form } = useForm()
+const route = useRoute()
+const form = reactive<LightningReceipt>({
+  invoice: (decodeURIComponent(route.params.invoice as string) || '').toLowerCase(),
+  preimage: (decodeURIComponent(route.params.preimage as string) || '').toLowerCase(),
+})
 
 const payeePubKey = ref('')
+
+const requestUrl = useRequestURL()
+const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
+
+const ogImageUrl = computed(() => {
+  if (!form.invoice || !form.preimage) return ''
+  return `${baseUrl}/api/og/${encodeURIComponent(form.invoice)}/${encodeURIComponent(form.preimage)}`
+})
+
+const pageUrl = computed(() => {
+  if (!form.invoice || !form.preimage) return ''
+  return `${baseUrl}/${encodeURIComponent(form.invoice)}/${encodeURIComponent(form.preimage)}`
+})
+
+if (form.invoice && form.preimage) {
+  useSeoMeta({
+    title: 'Lightning Invoice Receipt',
+    description: 'Cryptographic proof of Lightning Network payment',
+    ogTitle: 'Lightning Invoice Receipt',
+    ogDescription: 'Verify Lightning Network payment with cryptographic proof',
+    ogImage: ogImageUrl.value,
+    ogUrl: pageUrl.value,
+    ogType: 'website',
+    twitterCard: 'summary_large_image',
+    twitterTitle: 'Lightning Invoice Receipt',
+    twitterDescription: 'Verify Lightning Network payment with cryptographic proof',
+    twitterImage: ogImageUrl.value,
+  })
+}
 
 const decodedInvoice = computed(() => {
   if (!form.invoice) return null
@@ -40,9 +73,7 @@ const decodedInvoice = computed(() => {
   try {
     const decoded = bolt11.decode(form.invoice)
 
-    if (!decoded) {
-      return null
-    }
+    if (!decoded) return null
 
     const amount = decoded.sections.find((section) => section.name === 'amount')?.value
     const description =
@@ -50,9 +81,7 @@ const decodedInvoice = computed(() => {
     const paymentHash =
       decoded.sections.find((section) => section.name === 'payment_hash')?.value ?? ''
 
-    if (!amount) {
-      return null
-    }
+    if (!amount) return null
 
     return {
       amount: Math.floor(Number(amount) / 1000),
@@ -77,17 +106,13 @@ watchEffect(async () => {
 
 async function checkPaymentProof() {
   const preimage = form.preimage
-  if (preimage === null) {
-    return false
-  }
+  if (preimage === null) return false
+
   const preimageBytes = new Uint8Array(
     preimage!.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
   )
 
-  // Calculate SHA-256 hash using Web Crypto API
   const hashBuffer = await crypto.subtle.digest('SHA-256', preimageBytes)
-
-  // Convert to hex string
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   const computedHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 
