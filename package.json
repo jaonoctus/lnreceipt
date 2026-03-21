@@ -21,6 +21,7 @@
     "@noble/secp256k1": "^2.1.0",
     "@vee-validate/zod": "^4.14.7",
     "@vueuse/core": "^12.0.0",
+    "bolt12-decoder": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "light-bolt11-decoder": "^3.2.0",
