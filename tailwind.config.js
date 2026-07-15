@@ -20,7 +20,13 @@ export default {
     },
   },
   extend: {
+    fontFamily: {
+      receipt: ['"Courier Prime"', '"Courier New"', 'Courier', 'ui-monospace', 'Menlo', 'monospace'],
+    },
     colors: {
+      paper: "#FCFAF2",
+      ink: "#232019",
+      stamp: "#B3372C",
       border: "hsl(var(--border))",
       input: "hsl(var(--input))",
       ring: "hsl(var(--ring))",
@@ -78,12 +84,18 @@ export default {
         from: { height: 'var(--radix-collapsible-content-height)' },
         to: { height: 0 },
       },
+      stamp: {
+        "0%": { opacity: "0", transform: "scale(2.2) rotate(-14deg)" },
+        "60%": { opacity: "1", transform: "scale(0.94) rotate(-7deg)" },
+        "100%": { opacity: "0.9", transform: "scale(1) rotate(-8deg)" },
+      },
     },
     animation: {
       "accordion-down": "accordion-down 0.2s ease-out",
       "accordion-up": "accordion-up 0.2s ease-out",
       "collapsible-down": "collapsible-down 0.2s ease-in-out",
       "collapsible-up": "collapsible-up 0.2s ease-in-out",
+      stamp: "stamp 0.45s ease-out both",
     },
   },
 },
