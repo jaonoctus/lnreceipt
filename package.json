@@ -27,7 +27,7 @@
     "light-bolt11-decoder": "^3.2.0",
     "lucide-vue-next": "^0.468.0",
     "luxon": "^3.5.0",
-    "nuxt": "^3.21.7",
+    "nuxt": "^3.21.10",
     "radix-vue": "^1.9.11",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
