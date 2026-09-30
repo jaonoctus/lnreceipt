@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, watchEffect, ref } from 'vue'
+import { computed, watch, ref } from 'vue'
 
-import bolt11 from 'light-bolt11-decoder'
+import { decodeInvoice } from '~/composables/invoice'
 import { DateTime } from 'luxon'
 
 import { Icon } from '@iconify/vue'
@@ -16,30 +16,7 @@ const payeePubKey = ref('')
 
 const decodedInvoice = computed(() => {
   try {
-    const decoded = bolt11.decode(form.invoice)
-
-    if (!decoded) {
-      return null
-    }
-
-    const amount = decoded.sections.find((section) => section.name === 'amount')?.value
-    const description =
-      decoded.sections.find((section) => section.name === 'description')?.value ?? 'empty'
-    const paymentHash =
-      decoded.sections.find((section) => section.name === 'payment_hash')?.value ?? ''
-    const timestamp = decoded.sections.find((section) => section.name === 'timestamp')?.value
-
-    if (!amount) {
-      return null
-    }
-
-    return {
-      amount: Math.floor(Number(amount) / 1000),
-      description,
-      paymentHash,
-      timestamp: timestamp ? Number(timestamp) : null,
-      decoded,
-    }
+    return decodeInvoice(form.invoice)
   } catch (error) {
     console.error(error)
     return null
@@ -48,33 +25,35 @@ const decodedInvoice = computed(() => {
 
 const hasPreimage = computed(() => form.preimage.trim() !== '')
 
-watchEffect(async () => {
-  isVerified.value = false
-  if (decodedInvoice.value) {
-    isPaid.value = await checkPaymentProof()
-    isVerified.value = true
-    payeePubKey.value = (await getPubkeyFromSignature(decodedInvoice.value.decoded)) || ''
-  }
-})
-
-async function checkPaymentProof() {
-  const preimage = form.preimage
-  if (!preimage || preimage.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(preimage)) {
-    return false
-  }
-  const preimageBytes = new Uint8Array(
-    preimage.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
-  )
-
-  // Calculate SHA-256 hash using Web Crypto API
-  const hashBuffer = await crypto.subtle.digest('SHA-256', preimageBytes)
-
-  // Convert to hex string
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const computedHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
-
-  return computedHex === decodedInvoice.value?.paymentHash
-}
+watch(
+  [decodedInvoice, () => form.preimage],
+  async ([invoice, preimage], _, onCleanup) => {
+    let cancelled = false
+    onCleanup(() => {
+      cancelled = true
+    })
+    isVerified.value = false
+    isPaid.value = false
+    payeePubKey.value = ''
+    if (!invoice) return
+    try {
+      const pubkey = await invoice.getPayeePubkey()
+      let paid = false
+      if (/^[0-9a-f]{64}$/i.test(preimage)) {
+        const bytes = Uint8Array.from(preimage.match(/.{2}/g)!, (byte) => parseInt(byte, 16))
+        const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))
+        paid = byteArrayToHexString(hash) === invoice.paymentHash
+      }
+      if (cancelled) return
+      payeePubKey.value = pubkey || ''
+      isPaid.value = paid
+      isVerified.value = true
+    } catch {
+      // A malformed signature must not produce a verified receipt.
+    }
+  },
+  { immediate: true },
+)
 
 const receiptDate = computed(() => {
   const timestamp = decodedInvoice.value?.timestamp
@@ -139,16 +118,13 @@ const inputClass =
             id="invoice"
             v-model="form.invoice"
             type="text"
-            placeholder="lnbc… paste BOLT11 invoice"
+            placeholder="paste BOLT11 or BOLT12 invoice"
             autocomplete="off"
             spellcheck="false"
             :class="inputClass"
           />
 
-          <label
-            for="preimage"
-            class="mt-4 block text-xs font-bold uppercase tracking-[0.15em]"
-          >
+          <label for="preimage" class="mt-4 block text-xs font-bold uppercase tracking-[0.15em]">
             Preimage
           </label>
           <input
@@ -249,7 +225,8 @@ const inputClass =
               target="_blank"
               rel="noopener"
               class="underline underline-offset-2 hover:text-ink"
-            >How it works</a>
+              >How it works</a
+            >
           </p>
           <p class="mt-3 text-xs font-bold uppercase tracking-[0.2em]">
             *** {{ isPaid && isVerified ? 'Thank you for your payment' : 'Powered by math' }} ***

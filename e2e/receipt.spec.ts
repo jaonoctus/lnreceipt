@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-import { validReceipt, wrongPreimage } from '../tests/fixtures/receipt'
+import { bolt12Receipt, validReceipt, wrongPreimage } from '../tests/fixtures/receipt'
 
 test.describe('empty state', () => {
   test('shows the receipt header and awaiting message', async ({ page }) => {
@@ -100,5 +100,28 @@ test.describe('shared receipt links', () => {
     const url = new URL(copied)
     expect(url.searchParams.get('invoice')).toBe(validReceipt.invoice)
     expect(url.searchParams.get('preimage')).toBe(validReceipt.preimage)
+  })
+})
+
+test.describe('BOLT12 receipts', () => {
+  test('verifies the supplied invoice and rejects a wrong preimage', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('textbox', { name: 'Invoice' }).fill(bolt12Receipt.invoice)
+    await page.getByRole('textbox', { name: 'Preimage' }).fill(bolt12Receipt.preimage)
+    await expect(page.getByText('Paid', { exact: true })).toBeVisible()
+    await expect(page.getByText(bolt12Receipt.paymentHash)).toBeVisible()
+    await expect(page.getByRole('link', { name: /view/i })).toBeVisible()
+    await page.getByRole('textbox', { name: 'Preimage' }).fill(wrongPreimage)
+    await expect(page.getByText('Invalid', { exact: true })).toBeVisible()
+  })
+
+  test('verifies a shared BOLT12 receipt', async ({ page }) => {
+    const params = new URLSearchParams({
+      invoice: bolt12Receipt.invoice.toUpperCase(),
+      preimage: bolt12Receipt.preimage,
+    })
+    await page.goto(`/?${params}`)
+    await expect(page.getByText('Paid', { exact: true })).toBeVisible()
+    await expect(page.getByText(bolt12Receipt.paymentHash)).toBeVisible()
   })
 })
