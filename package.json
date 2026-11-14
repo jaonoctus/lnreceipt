@@ -28,12 +28,12 @@
     "light-bolt11-decoder": "^3.2.0",
     "lucide-vue-next": "^0.468.0",
     "luxon": "^3.5.0",
-    "nuxt": "^3.21.10",
+    "nuxt": "^4.6.3",
     "radix-vue": "^1.9.11",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "vee-validate": "^4.14.7",
-    "zod": "^3.23.8"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@iconify/vue": "^4.2.0",
@@ -55,7 +55,7 @@
     "prettier": "^3.3.3",
     "tailwindcss": "^3.4.16",
     "typescript": "5.8.3",
-    "vitest": "5.0.0",
+    "vitest": "5.1.0",
     "vue-tsc": "2.2.12"
   }
 }
