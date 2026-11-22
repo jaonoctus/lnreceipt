@@ -58,7 +58,7 @@ export function useForm() {
 export function strToHex(str: string) {
   return str
     .split('')
-    .map((x) => x.charCodeAt(0).toString(16))
+    .map((x) => x.charCodeAt(0).toString(16).padStart(2, '0'))
     .join('')
 }
 
