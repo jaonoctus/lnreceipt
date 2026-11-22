@@ -30,10 +30,18 @@ export function decodeInvoice(input: string): ReceiptInvoice {
     // BigInt keeps millisatoshi amounts above Number.MAX_SAFE_INTEGER exact.
     amount: Number(BigInt(String(amount)) / 1000n),
     description: String(field('description') ?? 'empty'),
-    paymentHash: String(field('payment_hash') ?? ''),
+    paymentHash: requirePaymentHash(field('payment_hash')),
     timestamp: field('timestamp') ? Number(field('timestamp')) : null,
     getPayeePubkey: () => getPubkeyFromSignature(decoded),
   }
+}
+
+// A receipt is meaningless without the hash the preimage is checked against.
+function requirePaymentHash(value: unknown) {
+  if (typeof value !== 'string' || !/^[0-9a-f]{64}$/.test(value)) {
+    throw new Error('Invoice has no valid payment hash')
+  }
+  return value
 }
 
 function decodeBolt12(input: string): ReceiptInvoice {
