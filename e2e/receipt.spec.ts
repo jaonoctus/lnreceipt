@@ -125,3 +125,16 @@ test.describe('BOLT12 receipts', () => {
     await expect(page.getByText(bolt12Receipt.paymentHash)).toBeVisible()
   })
 })
+
+test.describe('external links', () => {
+  test('never send the receipt URL as a referrer', async ({ page }) => {
+    await page.goto(`/?invoice=${validReceipt.invoice}&preimage=${validReceipt.preimage}`)
+    await expect(page.getByText('Paid', { exact: true })).toBeVisible()
+
+    const links = await page.locator('a[target="_blank"]').all()
+    expect(links.length).toBeGreaterThan(0)
+    for (const link of links) {
+      await expect(link).toHaveAttribute('rel', /\bnoreferrer\b/)
+    }
+  })
+})

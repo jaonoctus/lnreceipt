@@ -183,7 +183,7 @@ const inputClass =
                 <a
                   :href="`https://amboss.space/node/${payeePubKey}`"
                   target="_blank"
-                  rel="noopener"
+                  rel="noopener noreferrer"
                   class="inline-flex items-center gap-1 uppercase underline underline-offset-2 hover:text-ink/70"
                 >
                   view
@@ -223,7 +223,7 @@ const inputClass =
             <a
               href="https://faq.blink.sv/blink-and-other-wallets/how-to-prove-that-a-lightning-invoice-was-paid"
               target="_blank"
-              rel="noopener"
+              rel="noopener noreferrer"
               class="underline underline-offset-2 hover:text-ink"
               >How it works</a
             >
