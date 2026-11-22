@@ -35,6 +35,11 @@ describe('strToHex', () => {
   it('returns an empty string for an empty input', () => {
     expect(strToHex('')).toBe('')
   })
+
+  it('pads character codes below 0x10 to two hex digits', () => {
+    expect(strToHex('\n')).toBe('0a')
+    expect(strToHex('a\tb')).toBe('610962')
+  })
 })
 
 describe('byteArrayToHexString', () => {
