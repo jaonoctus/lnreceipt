@@ -55,5 +55,14 @@
     "typescript": "5.8.3",
     "vitest": "5.1.0",
     "vue-tsc": "2.2.12"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1",
+    "replace-in-file": {
+      "minimatch": "^3.1.5"
+    },
+    "js-beautify": {
+      "glob": "^14.0.2"
+    }
   }
 }
