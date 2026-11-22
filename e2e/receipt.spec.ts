@@ -66,12 +66,23 @@ test.describe('verification', () => {
 })
 
 test.describe('shared receipt links', () => {
-  test('verifies a receipt loaded from query params', async ({ page }) => {
+  test('verifies a receipt loaded from the link fragment', async ({ page }) => {
+    await page.goto(`/#/?invoice=${validReceipt.invoice}&preimage=${validReceipt.preimage}`)
+
+    await expect(page.getByRole('textbox', { name: 'Invoice' })).toHaveValue(validReceipt.invoice)
+    await expect(page.getByRole('textbox', { name: 'Preimage' })).toHaveValue(validReceipt.preimage)
+    await expect(page.getByText('Paid', { exact: true })).toBeVisible()
+  })
+
+  test('verifies a legacy query string link and moves it into the fragment', async ({ page }) => {
     await page.goto(`/?invoice=${validReceipt.invoice}&preimage=${validReceipt.preimage}`)
 
     await expect(page.getByRole('textbox', { name: 'Invoice' })).toHaveValue(validReceipt.invoice)
     await expect(page.getByRole('textbox', { name: 'Preimage' })).toHaveValue(validReceipt.preimage)
     await expect(page.getByText('Paid', { exact: true })).toBeVisible()
+    await expect(page).toHaveURL(
+      (url) => url.search === '' && url.hash.includes(`preimage=${validReceipt.preimage}`),
+    )
   })
 
   test('lowercases uppercase query params before verifying', async ({ page }) => {
@@ -98,8 +109,14 @@ test.describe('shared receipt links', () => {
 
     const copied = await page.evaluate(() => navigator.clipboard.readText())
     const url = new URL(copied)
-    expect(url.searchParams.get('invoice')).toBe(validReceipt.invoice)
-    expect(url.searchParams.get('preimage')).toBe(validReceipt.preimage)
+    expect(url.search).toBe('')
+    const fragment = new URLSearchParams(url.hash.slice(url.hash.indexOf('?')))
+    expect(fragment.get('invoice')).toBe(validReceipt.invoice)
+    expect(fragment.get('preimage')).toBe(validReceipt.preimage)
+
+    await page.goto('about:blank')
+    await page.goto(copied)
+    await expect(page.getByText('Paid', { exact: true })).toBeVisible()
   })
 })
 

@@ -7,6 +7,7 @@ import { Icon } from '@iconify/vue'
 import { useShare, useClipboard } from '@vueuse/core'
 
 import { Button } from '~/components/ui/button'
+import { receiptLink } from '~/composables/utils'
 
 const props = defineProps<{
   form: LightningReceipt
@@ -18,16 +19,9 @@ const { copy, isSupported: isCopySupported } = useClipboard()
 const copied = ref(false)
 let copiedTimeout: ReturnType<typeof setTimeout> | null = null
 
-const link = computed(() => {
-  const url = new URL(window.location.href)
-  url.searchParams.set('invoice', props.form.invoice)
-  url.searchParams.set('preimage', props.form.preimage)
-  return url.toString()
-})
+const link = computed(() => receiptLink(props.form.invoice, props.form.preimage))
 
-const hasFormData = computed(
-  () => props.form.invoice !== '' && props.form.preimage !== '',
-)
+const hasFormData = computed(() => props.form.invoice !== '' && props.form.preimage !== '')
 
 function startShare() {
   share({
