@@ -25,7 +25,7 @@ export function decodeInvoice(input: string): ReceiptInvoice {
     return section && 'value' in section ? section.value : undefined
   }
   const amount = field('amount')
-  if (!amount) throw new Error('Invoice has no amount')
+  if (!amount || Number(amount) === 0) throw new Error('Invoice has no amount')
   return {
     // BigInt keeps millisatoshi amounts above Number.MAX_SAFE_INTEGER exact.
     amount: Number(BigInt(String(amount)) / 1000n),
@@ -125,6 +125,7 @@ function decodeBolt12(input: string): ReceiptInvoice {
   secp256k1.ProjectivePoint.fromHex(pubkey).assertValidity()
   const signature = field(240, 64)
   const amount = integer(170)
+  if (amount === 0) throw new Error('Invoice has no amount')
   // Expired invoices remain useful as historical payment receipts.
   const timestamp = integer(164)
   if (timestamp > maxTimestamp) throw new Error('Invoice timestamp out of range')
