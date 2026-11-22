@@ -25,7 +25,8 @@ export function decodeInvoice(input: string): ReceiptInvoice {
   const amount = field('amount')
   if (!amount) throw new Error('Invoice has no amount')
   return {
-    amount: Math.floor(Number(amount) / 1000),
+    // BigInt keeps millisatoshi amounts above Number.MAX_SAFE_INTEGER exact.
+    amount: Number(BigInt(String(amount)) / 1000n),
     description: String(field('description') ?? 'empty'),
     paymentHash: String(field('payment_hash') ?? ''),
     timestamp: field('timestamp') ? Number(field('timestamp')) : null,
