@@ -5,6 +5,8 @@ import { byteArrayToHexString, getPubkeyFromSignature } from './utils'
 // BOLT12 uses the bech32 alphabet without a checksum.
 const bech32Alphabet = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
 const encoder = new TextEncoder()
+// Largest instant a JavaScript Date can represent, in seconds.
+const maxTimestamp = 8_640_000_000_000
 
 export interface ReceiptInvoice {
   amount: number
@@ -117,6 +119,7 @@ function decodeBolt12(input: string): ReceiptInvoice {
   const amount = integer(170)
   // Expired invoices remain useful as historical payment receipts.
   const timestamp = integer(164)
+  if (timestamp > maxTimestamp) throw new Error('Invoice timestamp out of range')
   const description = records.find((record) => record.type === 10)?.value
   return {
     amount: Math.floor(amount / 1000),
