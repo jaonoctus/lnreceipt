@@ -60,7 +60,8 @@ const receiptDate = computed(() => {
   if (!timestamp) {
     return null
   }
-  return DateTime.fromSeconds(timestamp).toFormat('yyyy-LL-dd HH:mm')
+  const date = DateTime.fromSeconds(timestamp)
+  return date.isValid ? date.toFormat('yyyy-LL-dd HH:mm') : null
 })
 
 const receiptNumber = computed(
