@@ -143,5 +143,16 @@ export async function getPubkeyFromSignature(decoded: DecodedInvoice) {
   const sig = Signature.fromCompact(signatureValue).addRecoveryBit(recoveryId)
   const pubkey = sig.recoverPublicKey(new Uint8Array(hash))
 
-  return byteArrayToHexString(pubkey.toRawBytes(true))
+  const recovered = byteArrayToHexString(pubkey.toRawBytes(true))
+
+  // When an invoice names its payee, the signature must come from that key.
+  // The decoder parses the payee field but leaves it out of its types.
+  const payee = (decoded.sections as { name: string; value?: unknown }[]).find(
+    (section) => section.name === 'payee',
+  )
+  if (payee && payee.value !== recovered) {
+    throw new Error('Invoice signature does not match its payee')
+  }
+
+  return recovered
 }
