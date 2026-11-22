@@ -38,21 +38,49 @@ export function useForm() {
   })
 
   onMounted(() => {
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href)
-      const invoice = url.searchParams.get('invoice')
-      const preimage = url.searchParams.get('preimage')
+    if (typeof window === 'undefined') return
 
+    const url = new URL(window.location.href)
+    const queryStart = url.hash.indexOf('?')
+    const fragment = new URLSearchParams(queryStart < 0 ? '' : url.hash.slice(queryStart + 1))
+    let invoice = fragment.get('invoice')
+    let preimage = fragment.get('preimage')
+
+    if (!invoice || !preimage) {
+      // Links created by older versions carry the receipt in the query string.
+      invoice = url.searchParams.get('invoice')
+      preimage = url.searchParams.get('preimage')
       if (invoice && preimage) {
-        form.invoice = invoice.toLowerCase()
-        form.preimage = preimage.toLowerCase()
+        try {
+          window.history.replaceState(window.history.state, '', receiptLink(invoice, preimage))
+        } catch {
+          // Some browsers refuse to rewrite file:// URLs; the receipt still loads.
+        }
       }
+    }
+
+    if (invoice && preimage) {
+      form.invoice = invoice.toLowerCase()
+      form.preimage = preimage.toLowerCase()
     }
   })
 
   return {
     form,
   }
+}
+
+/**
+ * Builds a shareable link for a receipt. The invoice and preimage go in the
+ * fragment, which browsers never send to servers, so the payment proof stays
+ * out of access logs, proxies and Referer headers.
+ */
+export function receiptLink(invoice: string, preimage: string) {
+  const url = new URL(window.location.href)
+  url.searchParams.delete('invoice')
+  url.searchParams.delete('preimage')
+  url.hash = `/?${new URLSearchParams({ invoice, preimage })}`
+  return url.toString()
 }
 
 export function strToHex(str: string) {

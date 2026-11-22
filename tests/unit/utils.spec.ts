@@ -9,6 +9,7 @@ import {
   byteArrayToHexString,
   bech32To8BitArray,
   getPubkeyFromSignature,
+  receiptLink,
   useForm,
 } from '~/composables/utils'
 import { validReceipt } from '../fixtures/receipt'
@@ -123,5 +124,59 @@ describe('useForm', () => {
     const form = mountForm()
     expect(form.invoice).toBe('')
     expect(form.preimage).toBe('')
+  })
+})
+
+describe('useForm with fragment links', () => {
+  function mountForm() {
+    let form!: ReturnType<typeof useForm>['form']
+    const Host = defineComponent({
+      setup() {
+        form = useForm().form
+        return () => h('div')
+      },
+    })
+    mount(Host)
+    return form
+  }
+
+  it('loads invoice and preimage from the fragment, lowercased', () => {
+    const invoice = validReceipt.invoice.toUpperCase()
+    window.history.replaceState({}, '', `/#/?invoice=${invoice}&preimage=${validReceipt.preimage}`)
+    const form = mountForm()
+    expect(form.invoice).toBe(validReceipt.invoice)
+    expect(form.preimage).toBe(validReceipt.preimage)
+    expect(window.location.search).toBe('')
+  })
+
+  it('ignores the fragment when only one of the two is present', () => {
+    window.history.replaceState({}, '', `/#/?preimage=${validReceipt.preimage}`)
+    const form = mountForm()
+    expect(form.invoice).toBe('')
+    expect(form.preimage).toBe('')
+  })
+
+  it('moves a legacy query string link into the fragment', () => {
+    window.history.replaceState(
+      {},
+      '',
+      `/?invoice=${validReceipt.invoice}&preimage=${validReceipt.preimage}&utm=1`,
+    )
+    const form = mountForm()
+    expect(form.invoice).toBe(validReceipt.invoice)
+    expect(form.preimage).toBe(validReceipt.preimage)
+    expect(window.location.search).toBe('?utm=1')
+    expect(window.location.hash).toBe(
+      `#/?invoice=${validReceipt.invoice}&preimage=${validReceipt.preimage}`,
+    )
+  })
+})
+
+describe('receiptLink', () => {
+  it('puts the receipt in the fragment and never in the query string', () => {
+    window.history.replaceState({}, '', '/?invoice=old&preimage=old')
+    const url = new URL(receiptLink(validReceipt.invoice, validReceipt.preimage))
+    expect(url.search).toBe('')
+    expect(url.hash).toBe(`#/?invoice=${validReceipt.invoice}&preimage=${validReceipt.preimage}`)
   })
 })

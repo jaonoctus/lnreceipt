@@ -1,6 +1,6 @@
 # lnreceipt
 
-Generate a Lightning payment receipt from a BOLT11 or BOLT12 (`lni1…`) invoice and its 32-byte payment preimage. Invoice details and the payment proof are processed locally in the browser. Shared links include both the invoice and preimage.
+Generate a Lightning payment receipt from a BOLT11 or BOLT12 (`lni1…`) invoice and its 32-byte payment preimage. Invoice details and the payment proof are processed locally in the browser. Shared links include both the invoice and preimage, carried in the URL fragment so they are never sent to the server hosting the page.
 
 BOLT12 receipts display the invoice amount, description, creation date, payment hash, and signing public key. The invoice signature is verified using the [BOLT12 specification](https://github.com/lightning/bolts/blob/master/12-offer-encoding.md) before displaying the receipt. Uppercase invoices and `+` continuation separators are supported. Offers (`lno1…`) and invoice requests (`lnr1…`) are not payment invoices; use the resulting `lni1…` invoice. Expired invoices can still be used to verify historical payments.
 
