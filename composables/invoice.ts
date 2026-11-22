@@ -23,7 +23,7 @@ export function decodeInvoice(input: string): ReceiptInvoice {
     return section && 'value' in section ? section.value : undefined
   }
   const amount = field('amount')
-  if (!amount) throw new Error('Invoice has no amount')
+  if (!amount || Number(amount) === 0) throw new Error('Invoice has no amount')
   return {
     amount: Math.floor(Number(amount) / 1000),
     description: String(field('description') ?? 'empty'),
@@ -114,6 +114,7 @@ function decodeBolt12(input: string): ReceiptInvoice {
   secp256k1.ProjectivePoint.fromHex(pubkey).assertValidity()
   const signature = field(240, 64)
   const amount = integer(170)
+  if (amount === 0) throw new Error('Invoice has no amount')
   // Expired invoices remain useful as historical payment receipts.
   const timestamp = integer(164)
   const description = records.find((record) => record.type === 10)?.value
